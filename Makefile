@@ -1,4 +1,4 @@
-inheritance:
-	pandoc -t slidy -s inheritance.md -o inheritance.html
-inheritance-preview: inheritance
-	gio open inheritance.html
+all:
+	pandoc -t slidy -s README.md -o README.html
+preview: all
+	gio open README.html
