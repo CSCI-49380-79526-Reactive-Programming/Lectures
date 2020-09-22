@@ -165,10 +165,7 @@ What if we did not override `name`? What would happen?
 :::
 ::: {.column width="50%"}
 
-<figure>
-    <img src="inheritance.png" width=750 />
-    <figcaption>Courtesy "Scala for the Impatient" by Cay Horstmann</figcaption>
-</figure>
+![Scala inheritance hierarchy diagram](inheritance.png){width=90% title="Courtesy \"Scala for the Impatient\" by Cay Horstmann."}
 
 :::
 ::::::::::::::
