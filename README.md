@@ -1,5 +1,5 @@
 % Inheritance Details in Scala
-% <a href="mailto:raffi.khatchadourian@hunter.cuny.edu">Raffi Khatchadourian</a>
+% <a href="mailto:raffi.khatchadourian@hunter.cuny.edu">Raffi Khatchadourian</a> (based on "Scala for the Impatient" 2nd Edition by Cay Horstmann)
 % September 22, 2020
 
 # Inheritance Details
