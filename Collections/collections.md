@@ -8,14 +8,13 @@ date: October 20, 2020
 
 ## Main Collections Traits 
 
-:::::::::::::: {.columns}
-::: {.column width="50%"}
+![Key traits in the Scala collections hierarchy](collections.png){title="Courtesy \"Scala for the Impatient\" by Cay Horstmann."}
 
-### `Iterable`s
+## `Iterable`s
 
 An `Iterable` is any collection that can yield an `Iterator`, which allows you to systematically access each element of the collection (see the [Iterator Pattern](https://en.wikipedia.org/wiki/Iterator_pattern)).
 
-#### Example
+### Example
 
 ```scala
 val coll = Array(1, 7, 2, 9) // some Iterable
@@ -24,59 +23,25 @@ while (iter.hasNext)
   println(iter.next())
 ```
 
-:::
-::: {.column width="50%"}
-
-![Key traits in the Scala collections hierarchy](collections.png){title="Courtesy \"Scala for the Impatient\" by Cay Horstmann."}
-
-:::
-::::::::::::::
-
-## Main Collections Traits 
-
-:::::::::::::: {.columns}
-::: {.column width="50%"}
-
-### `Seq`uences
+## `Seq`uences
 
 - A `Seq` is an ordered sequence of values like an array or a `List`.
 - An `IndexedSeq` allows fast random access through an integer index.
 
-#### Example
+### Example
 
 An `ArrayBuffer` is an `IndexedSeq` but a `LinkedList` is not.
 
-:::
-::: {.column width="50%"}
-
-![Key traits in the Scala collections hierarchy](collections.png){title="Courtesy \"Scala for the Impatient\" by Cay Horstmann."}
-
-:::
-::::::::::::::
-
-## Main Collections Traits 
-
-:::::::::::::: {.columns}
-::: {.column width="50%"}
-
-### `Set`s
+## `Set`s
 
 - A `Set` is an **ordered** collection of values.
 - A `SortedSet` maintains an **sorted** visitation order.
     - Elements are traversed in sorted order.
 
-### `Map`s
+## `Map`s
 
 - A `Map` is a set of $(\mathit{key},\mathit{value})$ pairs.
 - A `SortedMap` maintains a sorted visitation order by the keys.
-
-:::
-::: {.column width="50%"}
-
-![Key traits in the Scala collections hierarchy](collections.png){title="Courtesy \"Scala for the Impatient\" by Cay Horstmann."}
-
-:::
-::::::::::::::
 
 ## Constructing Collections
 
