@@ -8,7 +8,23 @@ date: October 20, 2020
 
 ## Main Collections Traits 
 
-![Key traits in the Scala collections hierarchy](collections.png){title="Courtesy \"Scala for the Impatient\" by Cay Horstmann."}
+```plantuml
+hide members
+interface Iterable << trait >>
+interface Seq << trait >>
+interface Set << trait >>
+interface Map << trait >>
+interface IndexedSeq << trait >>
+interface SortedSeq << trait >>
+interface SortedMap << trait >>
+
+Iterable <|-- Seq
+Seq <|-- IndexedSeq
+Iterable <|-- Set
+Set <|-- SortedSeq
+Iterable <|-- Map
+Map <|-- SortedMap
+```
 
 ## `Iterable`s
 
@@ -102,4 +118,133 @@ def digits(n: Int): Set[Int] = n match {
 }
 
 digits(1729) // : Set[Int] = Set(1, 7, 2, 9)
+```
+
+## Sequences
+
+```plantuml
+hide members
+interface Seq << trait >>
+interface IndexedSeq << trait >>
+Seq <|-- IndexedSeq
+IndexedSeq <|.. Vector
+IndexedSeq <|.. Range
+Seq <|.. List
+Seq <|.. Stream
+Seq <|.. Stack
+Seq <|.. Queue
+```
+
+- A `Vector` is the **immutable** equivalent of an `ArrayBuffer`. 
+- A `Range` is an integer sequence, e.g., `1 to 10` or `10.to(30, 10)`.
+
+## Lists
+
+- A list is either `Nil` (empty) or an object with a `head` and a `tail`.
+- The `tail` is *also* a `List`.
+- Similar to the `car` and `cdr` operations in Lisp.
+
+```scala
+val lst = List(4, 2) // : List[Int] = List(4, 2)
+lst.head // : Int = 4
+lst.tail // : List[Int] = List(2)
+lst.tail.head // : Int = 2
+lst.tail.tail // : List[Int] = List()
+```
+
+### Creating `List`s
+
+You can use `::` to create a `List` with a given `head` and `tail`:
+
+```scala
+9 :: List(4, 2)
+9 :: 4 :: 2 :: Nil
+9 :: (4 :: (2 :: Nil)) // right-associative.
+```
+
+- All of these create a `List(9, 4, 2)`.
+- Similar to the `cons` operator in Lisp for constructing lists.
+
+## Summing `List`s
+
+Natural fit for recursion:
+
+```scala
+def sum(lst: List[Int]): Int =
+  if (lst == Nil) 0 else lst.head + sum(lst.tail)
+
+sum(List(9, 4, 2)) // : Int = 15
+```
+
+Use pattern matching:
+
+```scala
+def sum(lst: List[Int]): Int = lst match {
+  case Nil => 0
+  case h :: t => h + sum(t) // h is lst.head, t is lst.tail
+}
+
+sum(List(9, 4, 2)) // : Int = 15
+```
+
+This is just for demonstration purposes. Should really just use the built-in method:
+
+```scala
+List(9, 4, 2).sum // : Int = 15
+```
+
+## `Set`s
+
+- A `Set` is an *unordered* collection of unique elements.
+- Adding an element to a `Set` that already exists in the `Set` has no effect.
+
+```scala
+Set(2, 0, 1) + 1 == Set(2, 0, 1) // : Boolean = true
+Set(2, 0, 1) + 4 == Set(2, 0, 1, 4) // : Boolean = true
+```
+
+- Ordering is *not* guaranteed.
+- By default, implemented as *hash sets*.
+  - Constant-time look-up.
+
+### `LinkedHashSet`s
+
+Elements are traversed in the order for which they were inserted:
+
+```scala
+val weekdays = scala.collection.mutable.LinkedHashSet("Mo", "Tu", "We", "Th", "Fr")
+weekdays.mkString(", ") // : String = Mo, Tu, We, Th, F
+```
+
+### `SortedSet`s
+
+Elements are traversed in the *sorted* order:
+
+```scala
+val nums = collection.immutable.SortedSet(5, 2, -2, 5, 2, -100)
+nums.mkString(", ") // : String = -100, -2, 2, 5
+```
+
+## `Set` Operations
+
+### Containment
+
+```scala
+val digits = Set(1, 7, 2, 9)
+digits contains 0 // : Boolean = false
+```
+
+### Subset
+
+```scala
+Set(1, 2) subsetOf digits // : Boolean = true
+```
+
+### Union, Intersection, and Set Difference
+
+```scala
+val primes = Set(2, 3, 5, 7)
+digits union primes // : Set[Int] = Set(5, 1, 9, 2, 7, 3)
+digits & primes // : Set[Int] = Set(7, 2)
+digits -- primes // : Set[Int] = Set(1, 9)
 ```
