@@ -1,0 +1,12 @@
+digraph {
+    op1 [label="op"]
+    op2 [label="op"]
+    op3 [label="op"]
+
+    op1 -> "coll(0)"
+    op1 -> "coll(1)"
+    op2 -> op1
+    op2 -> "coll(2)"
+    op3 -> op2
+    op3 -> "coll(3)"
+}

@@ -1,0 +1,12 @@
+digraph {
+    op1 [label="_"]
+    op2 [label="_"]
+    op3 [label="_"]
+
+    op1 -> "1"
+    op1 -> "7"
+    op2 -> op1
+    op2 -> "2"
+    op3 -> op2
+    op3 -> "9"
+}
