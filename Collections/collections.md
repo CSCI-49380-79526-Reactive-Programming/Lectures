@@ -15,13 +15,13 @@ interface Seq << trait >>
 interface Set << trait >>
 interface Map << trait >>
 interface IndexedSeq << trait >>
-interface SortedSeq << trait >>
+interface SortedSet << trait >>
 interface SortedMap << trait >>
 
 Iterable <|-- Seq
 Seq <|-- IndexedSeq
 Iterable <|-- Set
-Set <|-- SortedSeq
+Set <|-- SortedSet
 Iterable <|-- Map
 Map <|-- SortedMap
 ```
@@ -41,7 +41,7 @@ while (iter.hasNext)
 
 ## `Seq`uences
 
-- A `Seq` is an ordered sequence of values like an array or a `List`.
+- A `Seq` is an **ordered** sequence of values like an array or a `List`.
 - An `IndexedSeq` allows fast random access through an integer index.
 
 ### Example
@@ -50,7 +50,7 @@ An `ArrayBuffer` is an `IndexedSeq` but a `LinkedList` is not.
 
 ## `Set`s
 
-- A `Set` is an **ordered** collection of values.
+- A `Set` is an **unordered** collection of values.
 - A `SortedSet` maintains an **sorted** visitation order.
     - Elements are traversed in sorted order.
 
@@ -78,7 +78,7 @@ SortedSet("Hello", "World")
 - There is also a *generic* `to[C]` for type `C` (the *target* collection type).
 
 ```scala
-val col = mutable.ArrayBuffer(1, 1, 2, -4, 2, 100)
+val col = collection.mutable.ArrayBuffer(1, 1, 2, -4, 2, 100)
 val set = col.toSet
 val list = col.to[List]
 ```
@@ -291,7 +291,7 @@ numbers -- Vector(1, 2, 7, 9) // : Vector[Int] = Vector(3, 5)
 
 ## Mapping a Function
 
-- Used to transform all elements of a collection,
+- Used to transform all elements of a collection.
 - `map` applies a function to each element of a collection and results in another collection containing the mapped elements.
 
 ```scala
@@ -448,8 +448,8 @@ collection.mutable.Map[Char,Int] = Map(M -> 1, s -> 4, p -> 2, i -> 4)
 :::
 ::: {.column width="50%"}
 
-- LHS `op` is the *partially* filled map.
-RHS `op` is the *new* letter.
+- LHS of `op` is the *partially* filled map.
+- RHS of `op` is the *new* letter.
 
 ```scala
 (Map[Char, Int]() /: "Mississippi") {

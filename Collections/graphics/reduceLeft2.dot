@@ -1,7 +1,7 @@
 digraph {
-    op1 [label="_"]
-    op2 [label="_"]
-    op3 [label="_"]
+    op1 [label="-"]
+    op2 [label="-"]
+    op3 [label="-"]
 
     op1 -> "1"
     op1 -> "7"
