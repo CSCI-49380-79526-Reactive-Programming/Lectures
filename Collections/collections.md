@@ -724,3 +724,44 @@ words // : scala.collection.immutable.LazyList[String] = LazyList(A, A's, AMD, A
 ```
 
 - **Be cautious of memoization**; it can eat up memory if you're not careful.
+
+## Lazy Views
+
+- Besides `List`s, other kinds of `Collection`s can also be made "lazy" using the `view` method.
+- The `view` method returns a `Collection` whose methods' execution is deferred.
+
+### Example
+
+```scala
+import scala.math._
+
+val palindromicSquares = (1 to 1000000).view
+    .map(x => x * x)
+    .filter(x => x.toString == x.toString.reverse) // : scala.collection.View[Int] = View(<not computed>)
+```
+
+- Like `LazyList`s, this `View` also is not yet computed.
+- The following call generates enough squares until ten palindromes have been discovered:
+
+```scala
+palindromicSquares.take(10).mkString(",") // : String = 1,4,9,121,484,676,10201,12321,14641,40804
+```
+
+- Unlike `LazyList`s, the results are not memoized.
+    - The computation starts over.
+- Like `LazyList`s, the `force` method will force the computation of elements.
+- **Caution**: The `apply` method forces evaluation of the *entire* collection.
+
+## Mutating Lazy Views
+
+- You may obtain a view into a part (slice) of a `Collection`.
+- Any changes to that view *reflect* in the original `Collection`.
+
+### Example
+
+The following code will set the elements in the given slice to `0` but leave the remaining elements unchanged:
+
+```scala
+ArrayBuffer buffer = // ...
+buffer.view(10, 20).transform(x => 0)
+```
