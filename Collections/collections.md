@@ -535,3 +535,192 @@ List(5.0, 20.0, 9.95).zipAll(List(10, 2), 0.0, 1) // : List[(Double, Int)] = Lis
 ```scala
 "Scala".zipWithIndex.max._2 // : Int = 3
 ```
+## Iterators
+
+- Obtain an iterator from a collection with the `iterator` method.
+- Not as commonly used as in C++ or Java.
+- Iterators are useful for collections that are expensive to fully construct.
+
+### Example
+
+`Source.fromFile` returns an `iterator` to avoid reading an entire file into memory.
+
+## Iterator Examples
+
+### Obtaining an `Iterator`
+
+```scala
+val iter = (1 to 10).sliding(3)
+```
+
+### Using an `Iterator`
+
+```scala
+while (iter.hasNext)
+    println(iter.next())
+```
+
+Or:
+
+```scala
+for (elem <- iter)
+    println(elem)
+```
+
+#### Output
+
+```
+Vector(1, 2, 3)
+Vector(2, 3, 4)
+Vector(3, 4, 5)
+Vector(4, 5, 6)
+Vector(5, 6, 7)
+Vector(6, 7, 8)
+Vector(7, 8, 9)
+Vector(8, 9, 10)
+```
+
+## Iterator Examples
+
+```scala
+val iter = (1 to 10).sliding(3)
+```
+
+### Print the Number of Remaining Elements
+
+```scala
+println(iter.length) // outputs 8.
+```
+
+Obtaining the number of elements "exhausts" the iterator:
+
+```scala
+println(iter.hasNext) // Returns false as the iterator is now consumed.
+```
+
+### Convert an `Iterator` to a `Collection`
+
+```scala
+iter.toArray
+iter.toIterable
+```
+
+- The collection *starts* at the *current* element.
+
+## Peeking at the Next Element Returned By an `Iterator`
+
+- You can look at the next element of an `Iterator` *without* consuming it.
+
+```scala
+val filename = "/usr/share/dict/words"
+val iter = scala.io.Source.fromFile(filename).buffered
+
+while (iter.hasNext && iter.head.isUpper)
+    iter.next
+
+println(s"First non-uppercase character: ${iter.head}")
+```
+
+## `LazyList`s
+
+- Formerly called [`Stream`s in Scala version 2.12.x](https://www.scala-lang.org/api/2.13.3/scala/collection/immutable/Stream.html).
+    - [`LazyList`](https://www.scala-lang.org/api/2.13.3/scala/collection/immutable/LazyList.html) is *fully* lazy.
+    - `Stream`, in Scala 2.12.x, was only *tail* lazy.
+- `Iterator`s are "lazy" alternatives to `Collection`s.
+    - Allows piecemeal traversal of `Collection`s, useful for large or computationally intensive collections to construct.
+    - Only compute the elements that are needed.
+- `Iterator`s are *fragile*.
+    - Calls to `next` (and even `length`) **change** the iterator.
+- `LazyList` implements an *immutable* linked list.
+    -  It's called "lazy" because it computes its elements only when they are needed.
+- Because `LazyList`s compute their elements on-demand, they can be **infinite** collections! 
+    - **NOTE**: For infinite sequences, some methods (such as `count`, `sum`, `max` or `min`) will not terminate.
+
+## `LazyList` Examples
+
+```scala
+def numsFrom(n: BigInt): LazyList[BigInt] = n #:: numsFrom(n + 1)
+```
+
+- The `#::` operator is similar to `::` for `List`s.
+
+```scala
+val tenOrMore = numsFrom(10) // : LazyList[BigInt] = LazyList(<not computed>)
+```
+
+- As you see, no elements are initially computed.
+- To compute the first element, call:
+
+```scala
+tenOrMore.head // : BigInt = 10
+```
+
+- The `tail` is unevaluated:
+
+```scala
+tenOrMore.tail // : scala.collection.immutable.LazyList[BigInt] = LazyList(<not computed>)
+```
+
+- To keep going, you need to get the `head` to compute values:
+
+```scala
+tenOrMore.tail.tail.tail.head // : BigInt = 13
+```
+
+## Operating on `LazyList`s
+
+- Operations on `LazyList`s are deferred:
+
+
+```scala
+val squares = numsFrom(1).map(x => x * x)
+    // : scala.collection.immutable.LazyList[scala.math.BigInt] = LazyList(<not computed>)
+```
+
+- You must call `head` to force the evaluation of the next element:
+
+```scala
+squares.head // : scala.math.BigInt = 1
+```
+
+- To get multiple elements, you need to invoke operations that *force* the "realization" of the list.
+    - As the list may be expensive (or even impossible) to compute fully, you may not want to do this to the **entire** list:
+
+    ```scala
+    squares.take(5).foreach(println)
+    ```
+
+    Outputs:
+
+    ```
+    1
+    4
+    9
+    16
+    25
+    ```
+
+    Alternatively, `squares.take(5).force` results in `LazyList(1, 4, 9, 16, 25)`.
+
+## Constructing `LazyList`s from `Iterator`s
+
+- You can create a `LazyList` from an `Iterator`.
+
+### Example
+
+- `Source.getLines` returns `Iterator[String]`, which allows you to only visit each line *once*.
+- In `LazyList`s, on the other hand, elements are memoized; that is, the value of each element is computed at most once.
+    - This allows you to *revisit* elements without incurring additional computation costs.
+
+```scala
+import scala.io.Source
+
+val words = Source.fromFile("/usr/share/dict/words").getLines().to(LazyList)
+
+words // : scala.collection.immutable.LazyList[String] = LazyList(<not computed>)
+words.head // : String = A
+words(5) // : String = AOL's
+words // : scala.collection.immutable.LazyList[String] = LazyList(A, A's, AMD, AMD's, AOL, AOL's, <not computed>)
+```
+
+- **Be cautious of memoization**; it can eat up memory if you're not careful.
