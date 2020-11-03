@@ -769,3 +769,166 @@ buffer.view(10, 20).transform(x => 0)
 ## Parallel Collections
 
 - Writing correct concurrent programs is essential today yet difficult.
+- May want to process large collections in parallel, using multiple cores at once.
+- Some (e.g., commutative) operations parallelize naturally.
+
+### Example
+
+- To compute the sum of all elements, multiple threads can concurrently compute the sums of different parts of the collection.
+- The partial results can be combined to obtain the sum of the entire collection.
+- This is called divide-and-conquer (-and combine).
+
+### Scheduling Concurrent Tasks
+
+- Scheduling concurrent operations, like the one described above, can be burdensome and error-prone.
+- Threads must be created (forked), spun (executed), and joined (have their results combined) in a synchronized fashion.
+- Parallel collections makes this easier.
+
+#### Example
+
+To sum a large collection `coll` in *parallel*, simply write `coll.par.sum`.
+
+## The `par` Method
+
+- The `par` method of `Collection` results a *parallel* implementation of the `Collection.`
+- If possible, the `Collection` implementation will execute parallel versions of its operations.
+
+### Example
+
+Count the even numbers in `coll` by evaluating the predicate on sub-collections in parallel and combine the results:
+
+```scala
+coll.par.count(_ % 2 == 0)
+```
+
+You can even parallelize `for` loops using `.par`:
+
+```scala
+(0 until 100).par.foreach(i => print(s"$i "))
+```
+
+This prints the numbers in the order that the threads working on the task process them:
+
+```
+25 26 27 28 29 30 37 12 13 14 15 16 17 43 44 45 46 47 48 49 41 42 6 7 8 9 10 11 3 4 5 1 2 75 76 77 78 79 80 81 82 83 84 85 86 87 88 89 90 91 92 93 94 95 96 97 98 99 62 63 64 65 66 67 68 69 70 71 72 73 74 56 57 58 59 60 61 53 54 55 51 52 50 0 40 18 19 20 21 38 39 31 22 23 24 32 33 34 35 36
+```
+
+Compare this to the output of the sequential version, `(0 until 100).foreach(i => print(s"$i "))`:
+
+```
+0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 71 72 73 74 75 76 77 78 79 80 81 82 83 84 85 86 87 88 89 90 91 92 93 94 95 96 97 98 99
+```
+
+## Parallel Collections That Process In Order
+
+- As previously stated, it is not always possible to apply the operations in parallel.
+- A prominent example is when ordering of the collection elements must be maintained by the operation.
+- In such cases, the parallel implementation cannot break the tasks up for efficient parallel execution.
+
+### Example
+
+```scala
+(0 until 100).par.mkString(" ") == (0 until 100).mkString(" ") // : Boolean = true
+```
+
+## Parallel Collections and Side-Effects
+
+You should never try to mutate shared (mutable) variables in parallel operations as the results are unpredictable.
+
+```scala
+// Don't do this:
+
+var count = 0
+coll.par.filter(_ % 2 == 0).foreach(i => count += 1)
+count
+```
+
+### Example
+
+In one run, `count` may be 186119. But, in another run of the same code, `count` may be 337736.
+
+## Parallel Collections in Scala 2.13
+
+- In Scala 2.13, parallel collections have moved into their [own module](https://github.com/scala/scala-parallel-collections).
+- This was done so that programs not needing parallelism don't have access to it.
+- To work with parallel collections in Scala >= 2.13:
+    - Add a library dependency in `build.sbt`:
+	```scala
+	scalaVersion := "2.13.3"
+	libraryDependencies += "org.scala-lang.modules" %% "scala-parallel-collections" % "0.2.0"
+	```
+    - Add the following import:
+	```scala
+	import scala.collection.parallel.CollectionConverters._
+	```
+- This will give you access to the `.par` methods, as well as the parallel collection hierarchy.
+
+## Working With Parallel Collections
+
+### Type Hierarchy
+
+- You may think that parallel collections extend the sequential versions using inheritance.
+- However, this is not the case.
+- The objects returned from `.par` have types include the `ParSeq`, `ParSet`, and `ParMap` traits.
+- They are *not* subtypes of `Seq`, `Set`, or `Map`.
+- This means you *cannot* pass parallel collections to methods that expect sequential ones.
+
+### Converting Between Parallel and Sequential
+
+You can convert a parallel collection to a sequential one using `seq`:
+
+```scala
+val result = coll.par.filter(p).seq
+```
+
+## Associative Reduction and Folding
+
+- As previously mentioned, not all operations are parallelizable, such as those maintaining data ordering.
+- Examples include `reduceLeft` and `reduceRight`.
+- Alternatively, you may use `reduce`, which operates on portions of the collection, combining the results.
+- However, the given operation must be *associative*, i.e., fulfilling $(a \text{~op~} b) \text{~op~} c = a \text{~op~} (b \text{~op~} c)$.
+    - Addition is associative but subtraction is not.
+- Folding has a similar problem, and there is a `fold` method for that.
+- Unfortunately, it is not as flexible as both arguments must be elements of the collection.
+    - For example, the following is allowed but more complex folding is not.
+	```scala
+	val str = (1 to 1000).par.map(_.toString).fold("")(_ + _)
+	```
+
+	Produces:
+
+	```
+	val str: String = 12345678910111213141516171819202122232425262728...
+	```
+
+## Associative Aggregation
+
+- You can use `aggregate` to solve the problem of complex parallel folding.
+- It applies operations to portions of a collection and then uses another operation to combine the results.
+
+### Example
+
+```scala
+str.par.aggregate(Set[Char]())(_ + _, _ ++ _)
+```
+
+is equivalent to:
+
+```scala
+str.foldLeft(Set[Char]())(_ + _)
+```
+
+- Both code snippets form a set of all distinct characters in `str`.
+- Note that in Scala 2.13, `aggregate` is deprecated for *sequential* collections.
+
+## Lab
+
+1. Write a function that receives a collection of strings and a map from strings to integers. Return a collection of integers that are values of the map corresponding to one of the strings in the collection. For example, given `Array("Tom", "Fred", "Harry")` and `Map("Tom" -> 3, "Dick" -> 4, "Harry" -> 5)`, return `Array(3, 5)`. Hint: Use `flatMap` to combine the `Option` values returned by `get`.
+1. The method `java.util.TimeZone.getAvailableIDs` yields time zones such as `Africa/Cairo` and `Asia/Chungking`. Which continent has the most time zones? Hint: `groupBy`.
+1. Harry Hacker reads a file into a `String` and wants to use a parallel collection to update the letter frequencies concurrently on portions of the `String`. He uses the following code:
+
+    ```scala
+    val frequencies = new scala.collection.mutable.HashMap[Char, Int]
+    for (c <- str.par) frequencies(c) = frequencies.getOrElse(c, 0) + 1
+    ```
+    Why is this a terrible idea? How can he really parallelize the computation? (Hint: Use `aggregate`.)
