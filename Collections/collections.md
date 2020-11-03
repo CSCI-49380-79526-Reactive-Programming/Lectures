@@ -765,3 +765,7 @@ The following code will set the elements in the given slice to `0` but leave the
 ArrayBuffer buffer = // ...
 buffer.view(10, 20).transform(x => 0)
 ```
+
+## Parallel Collections
+
+- Writing correct concurrent programs is essential today yet difficult.
